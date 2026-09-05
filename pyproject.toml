@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "icu-mortality-prediction"
+version = "0.2.0"
+description = "Leakage-safe multi-model benchmark for PhysioNet 2012 ICU mortality prediction"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.26,<3",
+  "pandas>=2.1,<3",
+  "scikit-learn>=1.4,<2",
+  "scipy>=1.11,<2",
+]
+
+[project.optional-dependencies]
+train = [
+  "matplotlib>=3.8,<4",
+  "torch>=2.2,<3",
+  "xgboost>=2.0,<4",
+]
+dev = [
+  "pytest>=8,<9",
+  "ruff>=0.6,<1",
+]
+
+[project.scripts]
+icu-mortality = "icu_mortality.experiment:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

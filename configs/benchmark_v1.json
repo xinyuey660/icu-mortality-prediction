@@ -1,0 +1,31 @@
+{
+  "protocol": "stratified_patient_holdout",
+  "seed": 42,
+  "train_fraction": 0.80,
+  "validation_fraction": 0.10,
+  "test_fraction": 0.10,
+  "target_sensitivity": 0.80,
+  "models": [
+    "xgboost",
+    "grud",
+    "gru_attention",
+    "bigru_attention",
+    "triplet_transformer"
+  ],
+  "xgboost_windows_hours": [3, 6, 12],
+  "neural_training": {
+    "optimizer": "AdamW",
+    "learning_rate": 0.0005,
+    "batch_size": 32,
+    "max_epochs": 80,
+    "early_stopping_patience": 12,
+    "gradient_clip_norm": 1.0,
+    "loss": "class-weighted BCEWithLogitsLoss"
+  },
+  "ensemble": {
+    "type": "non-negative convex probability blend",
+    "objective": "validation log loss",
+    "test_labels_used_for_selection": false
+  }
+}
+

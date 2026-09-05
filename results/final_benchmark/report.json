@@ -1,0 +1,94 @@
+{
+  "status": "benchmark_complete",
+  "run_date": "2026-08-18",
+  "seed": 42,
+  "dataset": {
+    "name": "PhysioNet/Computing in Cardiology Challenge 2012 Set A",
+    "n_patients": 4000,
+    "split": {"train": 3200, "validation": 400, "test": 400},
+    "mortality_rate": 0.1385,
+    "dynamic_features_after_bp_merge": 34,
+    "static_features": 4
+  },
+  "selection": {
+    "xgboost_window_hours": 12,
+    "xgboost_best_iteration": 357,
+    "grud_best_epoch": 8,
+    "gru_attention_best_epoch": 23,
+    "bigru_attention_best_epoch": 23,
+    "triplet_transformer_best_epoch": 20,
+    "primary_validation_metric": "AUPRC",
+    "calibration": "5-fold OOF sigmoid on validation; full-validation refit applied to test",
+    "threshold_rule": "highest validation threshold with sensitivity >= 0.80",
+    "ensemble_objective": "validation log loss with non-negative weights summing to one"
+  },
+  "ensemble_weights": {
+    "xgboost": 0.4014853088973203,
+    "grud": 0.26125807693567665,
+    "gru_attention": 0.3372566141670029,
+    "bigru_attention": 0.0,
+    "triplet_transformer": 0.0
+  },
+  "test_metrics": {
+    "xgboost": {
+      "auroc": 0.8888010540184453, "auprc": 0.6247344940008901,
+      "brier": 0.08331344887155961, "sensitivity": 0.8363636363636363,
+      "specificity": 0.7420289855072464, "f1": 0.4842105263157895
+    },
+    "grud": {
+      "auroc": 0.8681422924901185, "auprc": 0.5534009955805074,
+      "brier": 0.08843173428179966, "sensitivity": 0.8,
+      "specificity": 0.7159420289855073, "f1": 0.4467005076142132
+    },
+    "gru_attention": {
+      "auroc": 0.8564953886693016, "auprc": 0.515630610414734,
+      "brier": 0.09094796681101876, "sensitivity": 0.9090909090909091,
+      "specificity": 0.6840579710144927, "f1": 0.4672897196261682
+    },
+    "bigru_attention": {
+      "auroc": 0.8257180500658762, "auprc": 0.4387168713703065,
+      "brier": 0.09762767217272952, "sensitivity": 0.8909090909090909,
+      "specificity": 0.6289855072463768, "f1": 0.4224137931034483
+    },
+    "triplet_transformer": {
+      "auroc": 0.8684584980237154, "auprc": 0.5816833006583386,
+      "brier": 0.08929769297676256, "sensitivity": 0.8545454545454545,
+      "specificity": 0.7304347826086957, "f1": 0.48205128205128206
+    },
+    "ensemble": {
+      "auroc": 0.886798418972332, "auprc": 0.6352014346750579,
+      "brier": 0.084569470276993, "sensitivity": 0.8545454545454545,
+      "specificity": 0.7130434782608696, "f1": 0.46766169154228854
+    }
+  },
+  "interpretation": {
+    "best_auroc_and_brier": "xgboost",
+    "best_auprc": "ensemble",
+    "ensemble_test_tradeoff": "Higher AUPRC and sensitivity than XGBoost, but slightly lower AUROC and worse Brier.",
+    "zero_weight_models": ["bigru_attention", "triplet_transformer"]
+  },
+  "bootstrap_95_ci": {
+    "xgboost": {
+      "auroc": [0.8450553359683795, 0.9252239789196312],
+      "auprc": [0.5133424271016668, 0.7359034669739966],
+      "brier": [0.07434238986373759, 0.09236095647976675]
+    },
+    "ensemble": {
+      "auroc": [0.8406837944664031, 0.9267457180500658],
+      "auprc": [0.5186482474996935, 0.7493659339159049],
+      "brier": [0.07660591156315741, 0.09276018588774905]
+    },
+    "ensemble_minus_xgboost": {
+      "auroc": [-0.019920948616600553, 0.015284584980237203],
+      "auprc": [-0.05349310426354615, 0.07117497279695653],
+      "brier": [-0.0025184400061213164, 0.004793183747345098]
+    }
+  },
+  "limitations": [
+    "Single patient-level holdout split and one neural-network seed.",
+    "Base-model hyperparameters and calibration use the same 400-patient validation cohort.",
+    "No external or prospective clinical validation.",
+    "Attention and feature importance are associations, not causal explanations.",
+    "Not intended for clinical decision support."
+  ]
+}

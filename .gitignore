@@ -1,0 +1,20 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+*.egg-info/
+
+# PhysioNet patient-level data and generated caches must stay local.
+data/raw/
+data/processed/
+*.npz
+*.pt
+*.pth
+*.joblib
+
+# Local experiment outputs. Keep only curated, reviewed artifacts.
+results/runs/
+wandb/
+mlruns/
