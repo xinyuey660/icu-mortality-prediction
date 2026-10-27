@@ -13,6 +13,7 @@ A leakage-safe benchmark for predicting in-hospital mortality from the first 48 
 - AUROC, AUPRC, Brier score, sensitivity, specificity, F1, and bootstrap uncertainty.
 - Machine-readable configuration and final experiment report.
 - Variable-level SHAP explanations, risk-group trajectories, and case explanations for the selected XGBoost model.
+- Clinical-use analysis: comparison with SAPS-I and SOFA, decision curves, alert workload, risk-adjusted mortality (SMR funnel plot), subgroup performance, and GCS recovery.
 
 ## Architecture
 
@@ -103,6 +104,12 @@ To explain the selected XGBoost model (refits it with the benchmark seed, split,
 python scripts/explain_xgboost.py --data-dir data/raw --output-dir results/interpretation
 ```
 
+To run the clinical-use analysis (5-fold out-of-fold risk for all 4,000 patients):
+
+```bash
+python scripts/clinical_analysis.py --data-dir data/raw --output-dir results/clinical
+```
+
 ## Evaluation protocol
 
 1. The sealed test split is never used for preprocessing, model selection, early stopping, calibration, threshold selection, or ensemble weighting.
@@ -111,7 +118,7 @@ python scripts/explain_xgboost.py --data-dir data/raw --output-dir results/inter
 4. Five-fold OOF sigmoid calibration aligns validation probability scales; calibrators are refitted on the full validation set and applied unchanged to test probabilities.
 5. Ensemble weights are non-negative, sum to one, and minimize validation log loss.
 
-See the [experiment protocol](docs/EXPERIMENT_PROTOCOL.md), [model rationale](docs/MODEL_SELECTION.md), and [model card](docs/MODEL_CARD.md).
+See the [experiment protocol](docs/EXPERIMENT_PROTOCOL.md), [model rationale](docs/MODEL_SELECTION.md), [model card](docs/MODEL_CARD.md), and [clinical analysis](docs/CLINICAL_ANALYSIS.md).
 
 ## Results
 
@@ -162,6 +169,18 @@ The machine-readable metrics and limitations are in [`results/final_benchmark/re
 
 The numbers behind these figures are in [`results/interpretation/interpretation.json`](results/interpretation/interpretation.json). No patient identifiers are stored.
 
+## Clinical analysis
+
+[`docs/CLINICAL_ANALYSIS.md`](docs/CLINICAL_ANALYSIS.md) asks what the model means for an ICU team. Every patient gets an out-of-fold risk from 5-fold cross-validation (pooled AUROC 0.844, observed/expected deaths 1.02, calibration slope 0.98). Headline findings:
+
+- **Added value over severity scores.** On 3,733 patients with both scores, AUROC is 0.846 for the model, 0.648 for SAPS-I and 0.617 for SOFA. The paired AUROC gain over SAPS-I is +0.198 (95% CI 0.175–0.221).
+- **Half the alert workload.** To catch 80% of deaths, the model raises 34 alerts per 100 patients (3.1 alerts per death found). SAPS-I needs 64 alerts (5.7 per death) and SOFA 68 (6.0 per death). The model also has the highest net benefit on the decision curve at every threshold from 0.05 to 0.60.
+- **Risk-adjusted benchmarking.** Standardised mortality ratios by ICU type range from 0.82 to 1.07, and all four types sit inside the 95% funnel limits.
+- **Groups to recalibrate.** The model under-predicts deaths in patients aged 80 and over (observed/expected 1.17) and in non-ventilated patients (1.25).
+- **GCS recovery.** Ventilated patients who started with GCS 3–8 had 37% mortality if GCS was still 3–8 at 36–48 hours, and 4% if it had recovered to 13–15.
+
+![Alert workload and decision curve](results/clinical/decision_curve.png)
+
 ## Repository structure
 
 ```text
@@ -169,9 +188,10 @@ src/icu_mortality/       # data, preprocessing, models, training, metrics, ensem
 scripts/                 # data download, run combination, plotting, and model explanation
 tests/                   # parsing, leakage, preprocessing, ensemble, and model-shape tests
 configs/benchmark_v1.json
-docs/                    # experiment protocol, model rationale, and model card
+docs/                    # experiment protocol, model rationale, model card, and clinical analysis
 results/final_benchmark/ # reviewed report and figures
 results/interpretation/  # SHAP, risk-trajectory, and case-explanation figures
+results/clinical/        # score comparison, decision curve, SMR funnel, subgroup, and GCS figures
 ```
 
 ## Data attribution
@@ -185,3 +205,5 @@ The downloader retrieves public Set A and `Outcomes-a.txt` from PhysioNet. The d
 - Choi et al., [RETAIN: An Interpretable Predictive Model for Healthcare using Reverse Time Attention Mechanism](https://arxiv.org/abs/1608.05745), NeurIPS 2016.
 - Chen & Guestrin, [XGBoost: A Scalable Tree Boosting System](https://arxiv.org/abs/1603.02754), KDD 2016.
 - Lundberg et al., [From local explanations to global understanding with explainable AI for trees](https://www.nature.com/articles/s42256-019-0138-9), *Nature Machine Intelligence*, 2020.
+- Vickers & Elkin, [Decision curve analysis: a novel method for evaluating prediction models](https://doi.org/10.1177/0272989X06295361), *Medical Decision Making*, 2006.
+- Spiegelhalter, [Funnel plots for comparing institutional performance](https://doi.org/10.1002/sim.1970), *Statistics in Medicine*, 2005.
