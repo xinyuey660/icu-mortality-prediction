@@ -1,0 +1,190 @@
+{
+  "created_at_utc": "2026-10-27T08:26:11.700082+00:00",
+  "seed": 42,
+  "window_hours": 12,
+  "n_test": 400,
+  "test_auroc": 0.8888010540184453,
+  "test_auprc": 0.6247344940008901,
+  "shap": {
+    "method": "XGBoost native TreeSHAP at the early-stopped iteration (log-odds)",
+    "base_value": 0.15866465866565704,
+    "max_additivity_error": 2.86102294921875e-06,
+    "variable_importance_top": {
+      "GCS": 0.6561,
+      "Urine": 0.322,
+      "BUN": 0.3191,
+      "Temp": 0.2453,
+      "RespRate": 0.214,
+      "HR": 0.1874,
+      "Age": 0.161,
+      "BP_Sys": 0.144,
+      "PaO2": 0.0876,
+      "Platelets": 0.0855,
+      "WBC": 0.0818,
+      "BP_Dias": 0.0806,
+      "Lactate": 0.0718,
+      "Na": 0.0701,
+      "PaCO2": 0.0694
+    },
+    "column_importance_top": {
+      "GCS last (36\u201348h)": 0.3296,
+      "GCS mean (36\u201348h)": 0.2484,
+      "Age": 0.161,
+      "Temperature mean (36\u201348h)": 0.1461,
+      "Urine output mean (36\u201348h)": 0.1435,
+      "Respiratory rate mean (0\u201312h)": 0.1318,
+      "Urine output mean (12\u201324h)": 0.0996,
+      "Heart rate last (36\u201348h)": 0.0932,
+      "Systolic BP mean (36\u201348h)": 0.0864,
+      "Urine output range (12\u201324h)": 0.0772,
+      "GCS trend (0\u201312h)": 0.075,
+      "ICU type": 0.0665,
+      "BUN last (12\u201324h)": 0.0651,
+      "BUN last (24\u201336h)": 0.0588,
+      "Temperature mean (24\u201336h)": 0.0554
+    }
+  },
+  "risk_groups": {
+    "high": {
+      "n": 100,
+      "observed_mortality": 0.4,
+      "median_by_bin": {
+        "GCS": [
+          8.0,
+          8.0,
+          8.42,
+          8.0,
+          8.83,
+          8.67,
+          9.0,
+          9.0
+        ],
+        "Urine": [
+          86.25,
+          48.0,
+          51.4,
+          49.17,
+          55.0,
+          50.92,
+          54.14,
+          54.0
+        ],
+        "BUN": [
+          34.0,
+          37.5,
+          35.5,
+          35.0,
+          40.5,
+          37.0,
+          34.0,
+          44.0
+        ],
+        "HR": [
+          91.75,
+          91.6,
+          91.21,
+          88.17,
+          89.5,
+          87.33,
+          86.83,
+          89.0
+        ]
+      }
+    },
+    "low": {
+      "n": 100,
+      "observed_mortality": 0.0,
+      "median_by_bin": {
+        "GCS": [
+          12.17,
+          14.65,
+          15.0,
+          15.0,
+          15.0,
+          15.0,
+          15.0,
+          15.0
+        ],
+        "Urine": [
+          200.0,
+          127.5,
+          100.0,
+          106.33,
+          111.75,
+          135.83,
+          152.08,
+          166.25
+        ],
+        "BUN": [
+          15.0,
+          14.25,
+          14.0,
+          12.0,
+          8.0,
+          10.0,
+          15.0,
+          13.0
+        ],
+        "HR": [
+          85.55,
+          86.27,
+          87.56,
+          85.76,
+          84.77,
+          85.44,
+          85.49,
+          84.6
+        ]
+      }
+    }
+  },
+  "trajectory_bin_hours": 6,
+  "case_threshold": {
+    "rule": "highest validation threshold with sensitivity >= 0.80",
+    "value": 0.36597901582717896
+  },
+  "cases": {
+    "correct_alert": {
+      "probability": 0.9592553973197937,
+      "died": true,
+      "top_contributions": {
+        "GCS": 1.0815,
+        "BP_Sys": 0.5432,
+        "Urine": 0.463,
+        "Lactate": 0.3198,
+        "BUN": 0.3123,
+        "Platelets": 0.1687,
+        "Temp": 0.1654,
+        "pH": -0.1208
+      }
+    },
+    "false_alarm": {
+      "probability": 0.8594077825546265,
+      "died": false,
+      "top_contributions": {
+        "GCS": 0.7961,
+        "Urine": 0.4761,
+        "Lactate": 0.3773,
+        "Age": -0.2658,
+        "BP_Sys": 0.1921,
+        "BUN": 0.1514,
+        "Platelets": 0.1466,
+        "PaCO2": -0.1224
+      }
+    },
+    "missed_death": {
+      "probability": 0.12610511481761932,
+      "died": true,
+      "top_contributions": {
+        "GCS": -0.7576,
+        "Urine": -0.4641,
+        "Temp": -0.3658,
+        "Platelets": 0.298,
+        "HR": -0.1786,
+        "WBC": 0.1325,
+        "ICUType": -0.1131,
+        "Age": -0.0937
+      }
+    }
+  }
+}
