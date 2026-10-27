@@ -12,6 +12,7 @@ A leakage-safe benchmark for predicting in-hospital mortality from the first 48 
 - Validation-only early stopping, calibration, threshold selection, and ensemble weighting.
 - AUROC, AUPRC, Brier score, sensitivity, specificity, F1, and bootstrap uncertainty.
 - Machine-readable configuration and final experiment report.
+- Variable-level SHAP explanations, risk-group trajectories, and case explanations for the selected XGBoost model.
 
 ## Architecture
 
@@ -96,6 +97,12 @@ python scripts/combine_runs.py \
 
 Each complete run writes a patient split manifest, validation/test predictions, training records, and a JSON report.
 
+To explain the selected XGBoost model (refits it with the benchmark seed, split, and 12h window):
+
+```bash
+python scripts/explain_xgboost.py --data-dir data/raw --output-dir results/interpretation
+```
+
 ## Evaluation protocol
 
 1. The sealed test split is never used for preprocessing, model selection, early stopping, calibration, threshold selection, or ensemble weighting.
@@ -129,15 +136,42 @@ Compared with XGBoost, the ensemble increased test AUPRC by 0.0105 and sensitivi
 
 The machine-readable metrics and limitations are in [`results/final_benchmark/report.json`](results/final_benchmark/report.json).
 
+## Interpretation
+
+`scripts/explain_xgboost.py` refits the selected 12h XGBoost with the benchmark seed and split. The refit reproduces the benchmark exactly (test AUROC 0.8888, AUPRC 0.6247). Contributions come from XGBoost's native TreeSHAP at the early-stopped iteration. Each clinical variable appears in many window and summary columns, so its contributions are summed per patient. Because SHAP values are additive, the summed value is still an exact share of the model's log-odds.
+
+**What drives the risk.** GCS is the strongest driver (mean |SHAP| 0.66 log-odds). Urine output (0.32), BUN (0.32), temperature (0.25), respiratory rate (0.21), heart rate (0.19), age (0.16) and systolic blood pressure (0.14) follow.
+
+![Variable importance](results/interpretation/variable_importance.png)
+
+**Direction of each effect.** In the last 12 hours, low GCS, low urine output, lower temperature and lower systolic blood pressure all raise predicted risk, as do a higher heart rate and older age. A rising GCS over the first 12 hours lowers it. Grey points are windows without a measurement.
+
+![SHAP beeswarm](results/interpretation/shap_beeswarm.png)
+
+**Risk-group trajectories.** The test quartile with the highest predicted risk had 100 patients, of whom 40% died. In that quartile, median GCS stayed at 8–9 points for the full 48 hours. The lowest-risk quartile also had 100 patients, and none died; its median GCS reached 15 within 12 hours. After the first six hours, median urine output per record was about 50 mL in the high-risk quartile and 100–170 mL in the low-risk quartile. Median BUN was 34–44 mg/dL versus 8–15 mg/dL. Heart rate differed less: medians were 87–92 versus 85–88 bpm, with overlapping interquartile ranges.
+
+![Risk trajectories](results/interpretation/risk_trajectories.png)
+
+**Case explanations.** These use the validation threshold that reaches 0.80 sensitivity (0.366):
+
+- **Correct alert** (predicted risk 0.96, died): GCS, systolic blood pressure and urine output contributed most to the high score.
+- **False alarm** (0.86, survived): GCS, urine output and lactate raised the score, while age lowered it.
+- **Missed death** (0.13): GCS, urine output and temperature all lowered the score, so the model rated this patient as low risk.
+
+![Case explanations](results/interpretation/case_explanations.png)
+
+The numbers behind these figures are in [`results/interpretation/interpretation.json`](results/interpretation/interpretation.json). No patient identifiers are stored.
+
 ## Repository structure
 
 ```text
 src/icu_mortality/       # data, preprocessing, models, training, metrics, ensemble, CLI
-scripts/                 # data download, run combination, and plotting utilities
+scripts/                 # data download, run combination, plotting, and model explanation
 tests/                   # parsing, leakage, preprocessing, ensemble, and model-shape tests
 configs/benchmark_v1.json
 docs/                    # experiment protocol, model rationale, and model card
 results/final_benchmark/ # reviewed report and figures
+results/interpretation/  # SHAP, risk-trajectory, and case-explanation figures
 ```
 
 ## Data attribution
@@ -150,3 +184,4 @@ The downloader retrieves public Set A and `Outcomes-a.txt` from PhysioNet. The d
 - Tipirneni & Reddy, [Self-Supervised Transformer for Sparse and Irregularly Sampled Multivariate Clinical Time-Series](https://arxiv.org/abs/2107.14293), KDD 2022.
 - Choi et al., [RETAIN: An Interpretable Predictive Model for Healthcare using Reverse Time Attention Mechanism](https://arxiv.org/abs/1608.05745), NeurIPS 2016.
 - Chen & Guestrin, [XGBoost: A Scalable Tree Boosting System](https://arxiv.org/abs/1603.02754), KDD 2016.
+- Lundberg et al., [From local explanations to global understanding with explainable AI for trees](https://www.nature.com/articles/s42256-019-0138-9), *Nature Machine Intelligence*, 2020.
